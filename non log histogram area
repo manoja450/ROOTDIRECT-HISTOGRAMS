@@ -1,0 +1,60 @@
+{
+    // Create canvas with custom margins
+    TCanvas *c1 = new TCanvas("c1", "Area Distribution", 1200, 800);
+    c1->SetTopMargin(0.08);     // 8% top margin
+    c1->SetBottomMargin(0.12);  // 12% bottom margin
+    c1->SetLeftMargin(0.12);    // 12% left margin
+    c1->SetRightMargin(0.08);   // 8% right margin
+    
+    // Create main histogram (0-50000 range)
+    tree->Draw("area[0]>>h_main(100,0,50000)", "triggerBits==34", "goff");
+    TH1F *h_main = (TH1F*)gDirectory->Get("h_main");
+    
+    // Style main histogram with larger axis titles
+    h_main->SetLineColor(kRed);
+    h_main->SetLineWidth(2);
+    h_main->GetXaxis()->SetTitle("Area");
+    h_main->GetYaxis()->SetTitle("Events/550 ADC");
+    h_main->GetYaxis()->SetTitleOffset(1.0);  // Y-axis title offset
+    
+    // Larger axis titles and labels
+    h_main->GetXaxis()->SetTitleSize(0.05);   // X-axis title size (was 0.04)
+    h_main->GetYaxis()->SetTitleSize(0.05);   // Y-axis title size (was 0.04)
+    h_main->GetXaxis()->SetLabelSize(0.045);  // X-axis label size
+    h_main->GetYaxis()->SetLabelSize(0.045);  // Y-axis label size
+    
+    h_main->SetTitle("");  // Remove main title
+    
+    // Create filled portion (0-4800)
+    TH1F *h_filled = (TH1F*)h_main->Clone("h_filled");
+    for(int i=1; i<=h_filled->GetNbinsX(); i++) {
+        if(h_filled->GetBinCenter(i) > 4800) {
+            h_filled->SetBinContent(i, 0);
+        }
+    }
+    h_filled->SetFillColor(kBlue);
+    h_filled->SetLineColor(kBlue);
+    
+    // Draw histograms
+    h_main->Draw("HIST");
+    h_filled->Draw("HIST SAME");
+    
+    // Configure statistics box
+    gStyle->SetOptStat(1110);  // Entries, Mean, Std Dev
+    h_main->SetStats(1);
+    c1->Update();  // Necessary to generate stats box
+    
+    TPaveStats *st = (TPaveStats*)h_main->FindObject("stats");
+    st->SetName("PMT1");
+    st->SetX1NDC(0.65);
+    st->SetX2NDC(0.9);
+    st->SetY1NDC(0.7);
+    st->SetY2NDC(0.9);
+    st->SetBorderSize(1);
+    st->SetFillStyle(1001);
+    st->SetFillColor(kWhite);
+    st->SetTextSize(0.035);  // Stats box text size
+    
+    c1->Modified();
+    c1->Update();
+}
